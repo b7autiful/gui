@@ -398,7 +398,7 @@ local Templates = {
         BackgroundImage = "",
          --// Glow \\--
         Glow = true,
-        GlowSize = 6,
+        GlowSize = 10,
         GlowTransparency = 0.55,
 
         --// Animations \\--
