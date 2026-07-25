@@ -398,8 +398,8 @@ local Templates = {
         BackgroundImage = "",
          --// Glow \\--
         Glow = true,
-        GlowSize = 18,
-        GlowTransparency = 0.35,
+        GlowSize = 6,
+        GlowTransparency = 0.55,
 
         --// Animations \\--
         Animations = {
@@ -1778,21 +1778,37 @@ end
 function Library:AddGlow(Frame: GuiObject, Info: { [string]: any }?)
     Info = Info or {}
 
-    local Glow = New("ImageLabel", {
+    local Size = Info.Size or 6          -- толщина свечения (было 18 — стало компактнее)
+    local Layers = Info.Layers or 4      -- кол-во слоёв для мягкого градиента
+    local Color = Info.Color or "AccentColor"
+    local MaxTransparency = Info.Transparency or 0.55
+
+    local GlowHolder = New("Frame", {
         AnchorPoint = Vector2.new(0.5, 0.5),
         BackgroundTransparency = 1,
         Position = UDim2.fromScale(0.5, 0.5),
-        Size = UDim2.new(1, (Info.Size or 18) * 2, 1, (Info.Size or 18) * 2),
+        Size = UDim2.fromScale(1, 1),
         ZIndex = Info.ZIndex or math.max(0, Frame.ZIndex - 1),
-        Image = "rbxassetid://1316045217",
-        ImageColor3 = Info.Color or "AccentColor",
-        ImageTransparency = Info.Transparency or 0.35,
-        ScaleType = Enum.ScaleType.Slice,
-        SliceCenter = Rect.new(10, 10, 118, 118),
         Parent = Frame,
     })
 
-    return Glow
+    for i = 1, Layers do
+        New("UIStroke", {
+            Color = Color,
+            Thickness = (Size / Layers) * i,
+            Transparency = MaxTransparency + ((1 - MaxTransparency) * (i / Layers)),
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = GlowHolder,
+        })
+    end
+
+    local GlowCorner = New("UICorner", {
+        CornerRadius = UDim.new(0, Library.CornerRadius),
+        Parent = GlowHolder,
+    })
+    table.insert(Library.Corners, GlowCorner)
+
+    return GlowHolder
 end
 
 function Library:AddBlank(Frame: GuiObject, Size: UDim2)
@@ -1991,6 +2007,7 @@ function Library:AddDraggableLabel(...)
     )
 
     Library:AddOutline(Label)
+    Library:AddGlow(Label)
     Library:MakeDraggable(Label, Label, true)
 
     function DraggableLabel:SetText(Text: string)
@@ -2124,6 +2141,7 @@ function Library:AddDraggableButton(...)
         )
     end
     Library:AddOutline(Button)
+	Library:AddGlow(Button)
 
     local DragThreshold = if ExcludeDragging then 0.25 else math.huge
     Button.InputBegan:Connect(function(Input: InputObject)
@@ -2215,6 +2233,7 @@ function Library:AddDraggableMenu(Name: string)
         })
     )
     Library:AddOutline(Holder)
+    Library:AddGlow(Holder)
 
     Library:MakeLine(Holder, {
         Position = UDim2.fromOffset(0, 34),
@@ -2324,6 +2343,7 @@ function Library:AddDraggableImageButton(...)
         )
     end
     Library:AddOutline(Button)
+	Library:AddGlow(Button)
 
     local DragThreshold = if ExcludeDragging then 0.25 else math.huge
     Button.InputBegan:Connect(function(Input: InputObject)
@@ -10594,6 +10614,7 @@ function Library:CreateWindow(WindowInfo)
             })
         )
         Library:AddOutline(DialogFrame)
+        Library:AddGlow(DialogFrame)
 
         local InnerContainer = New("Frame", {
             BackgroundTransparency = 1,
@@ -11370,6 +11391,7 @@ function Library:CreateLoading(LoadingInfo)
         Parent = ScreenGui,
     })
     Library:AddOutline(MainFrame)
+	Library:AddGlow(MainFrame)
     table.insert(Library.Corners, New("UICorner", { CornerRadius = UDim.new(0, Library.CornerRadius), Parent = MainFrame }))
     
 	local MainScale = New("UIScale", {
