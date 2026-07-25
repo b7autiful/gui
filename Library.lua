@@ -1231,7 +1231,7 @@ function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
 
     local BaseColor = Info.BaseColor or "AccentColor"
     local ShimmerColor = Info.ShimmerColor or Color3.new(1, 1, 1)
-    local Width = Info.Width or 0.18
+    local Width = Info.Width or 0.12
     local Duration = Info.Duration or 1.2
     local Interval = Info.Interval or 6
     local Angle = Info.Angle or 20
@@ -1241,16 +1241,12 @@ function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
     local Gradient = Instance.new("UIGradient")
     Gradient.Color = ColorSequence.new({
         ColorSequenceKeypoint.new(0, BaseColorValue),
+        ColorSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), BaseColorValue),
         ColorSequenceKeypoint.new(0.5, ShimmerColor),
+        ColorSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), BaseColorValue),
         ColorSequenceKeypoint.new(1, BaseColorValue),
     })
-    Gradient.Transparency = NumberSequence.new({
-        NumberSequenceKeypoint.new(0, 1),
-        NumberSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), 1),
-        NumberSequenceKeypoint.new(0.5, 0),
-        NumberSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), 1),
-        NumberSequenceKeypoint.new(1, 1),
-    })
+	
     Gradient.Rotation = Angle
     Gradient.Offset = Vector2.new(-1, 0)
     Gradient.Parent = GuiObject
@@ -1261,7 +1257,9 @@ function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
                 local Value = Library.Scheme[BaseColor]
                 return ColorSequence.new({
                     ColorSequenceKeypoint.new(0, Value),
+                    ColorSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), Value),
                     ColorSequenceKeypoint.new(0.5, ShimmerColor),
+                    ColorSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), Value),
                     ColorSequenceKeypoint.new(1, Value),
                 })
             end,
