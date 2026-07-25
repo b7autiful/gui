@@ -1230,67 +1230,54 @@ function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
     Info = Info or {}
 
     local BaseColor = Info.BaseColor or "AccentColor"
-    local ShimmerColor = Info.ShimmerColor or Color3.new(1, 1, 1)
-    local Width = Info.Width or 0.12
-    local Duration = Info.Duration or 1.2
+    local Duration = Info.Duration or 0.6
     local Interval = Info.Interval or 6
-    local Angle = Info.Angle or 20
 
-    local BaseColorValue = typeof(BaseColor) == "Color3" and BaseColor or Library.Scheme[BaseColor]
+    local IsText = GuiObject:IsA("TextLabel") or GuiObject:IsA("TextButton")
+    local ColorProp = IsText and "TextColor3" or (GuiObject:IsA("ImageLabel") or GuiObject:IsA("ImageButton")) and "ImageColor3" or "BackgroundColor3"
 
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, BaseColorValue),
-        ColorSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), BaseColorValue),
-        ColorSequenceKeypoint.new(0.5, ShimmerColor),
-        ColorSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), BaseColorValue),
-        ColorSequenceKeypoint.new(1, BaseColorValue),
-    })
-	
-    Gradient.Rotation = Angle
-    Gradient.Offset = Vector2.new(-1, 0)
-    Gradient.Parent = GuiObject
+    local function GetBaseColor()
+        return typeof(BaseColor) == "Color3" and BaseColor or Library.Scheme[BaseColor]
+    end
 
-    if typeof(BaseColor) == "string" then
-        Library:AddToRegistry(Gradient, {
-            Color = function()
-                local Value = Library.Scheme[BaseColor]
-                return ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, Value),
-                    ColorSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), Value),
-                    ColorSequenceKeypoint.new(0.5, ShimmerColor),
-                    ColorSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), Value),
-                    ColorSequenceKeypoint.new(1, Value),
-                })
-            end,
-        })
+    local function GetShimmerColor()
+        local Base = GetBaseColor()
+        -- посветлённая версия базового цвета (белый блик поверх акцента)
+        return Base:Lerp(Color3.new(1, 1, 1), 0.6)
     end
 
     local Running = true
     task.spawn(function()
         while Running and GuiObject.Parent do
-            Gradient.Offset = Vector2.new(-1, 0)
-
-            local Tween = TweenService:Create(
-                Gradient,
-                TweenInfo.new(Duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
-                { Offset = Vector2.new(1, 0) }
-            )
-            Tween:Play()
-            Tween.Completed:Wait()
-
             task.wait(Interval)
+            if not (Running and GuiObject.Parent) then break end
+
+            local BaseNow = GetBaseColor()
+            local ShimmerNow = GetShimmerColor()
+
+            local TweenIn = TweenService:Create(
+                GuiObject,
+                TweenInfo.new(Duration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+                { [ColorProp] = ShimmerNow }
+            )
+            TweenIn:Play()
+            TweenIn.Completed:Wait()
+
+            if not (Running and GuiObject.Parent) then break end
+
+            local TweenOut = TweenService:Create(
+                GuiObject,
+                TweenInfo.new(Duration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
+                { [ColorProp] = BaseNow }
+            )
+            TweenOut:Play()
+            TweenOut.Completed:Wait()
         end
     end)
 
     return {
-        Gradient = Gradient,
         Stop = function() Running = false end,
-        Destroy = function()
-            Running = false
-            Library:RemoveFromRegistry(Gradient)
-            Gradient:Destroy()
-        end,
+        Destroy = function() Running = false end,
     }
 end
 
