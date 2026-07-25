@@ -1225,71 +1225,11 @@ function Library:Validate(Table: { [string]: any }, Template: { [string]: any })
     return Table
 end
 
---// Shimmer \\--
-function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
-    Info = Info or {}
-
-    local BaseColor = Info.BaseColor or "AccentColor"
-    local Duration = Info.Duration or 1
-    local Interval = Info.Interval or 1
-
-    local IsText = GuiObject:IsA("TextLabel") or GuiObject:IsA("TextButton")
-    local ColorProp = IsText and "TextColor3" or (GuiObject:IsA("ImageLabel") or GuiObject:IsA("ImageButton")) and "ImageColor3" or "BackgroundColor3"
-
-    local function GetBaseColor()
-        return typeof(BaseColor) == "Color3" and BaseColor or Library.Scheme[BaseColor]
-    end
-
-    local function GetShimmerColor()
-        local Base = GetBaseColor()
-        -- посветлённая версия базового цвета (белый блик поверх акцента)
-        return Base:Lerp(Color3.new(1, 1, 1), 0.6)
-    end
-
-    local Running = true
-    task.spawn(function()
-        while Running and GuiObject.Parent do
-            task.wait(Interval)
-            if not (Running and GuiObject.Parent) then break end
-
-            local BaseNow = GetBaseColor()
-            local ShimmerNow = GetShimmerColor()
-
-            local TweenIn = TweenService:Create(
-                GuiObject,
-                TweenInfo.new(Duration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
-                { [ColorProp] = ShimmerNow }
-            )
-            TweenIn:Play()
-            TweenIn.Completed:Wait()
-
-            if not (Running and GuiObject.Parent) then break end
-
-            local TweenOut = TweenService:Create(
-                GuiObject,
-                TweenInfo.new(Duration / 2, Enum.EasingStyle.Sine, Enum.EasingDirection.In),
-                { [ColorProp] = BaseNow }
-            )
-            TweenOut:Play()
-            TweenOut.Completed:Wait()
-        end
-    end)
-
-    return {
-        Stop = function() Running = false end,
-        Destroy = function() Running = false end,
-    }
-end
-
 --// Creator Functions \\--
 local function FillInstance(Table: { [string]: any }, Instance: GuiObject)
     local ThemeProperties = Library.Registry[Instance] or {}
 
     for key, value in Table do
-        if key == "NoShimmer" then
-            continue
-        end
-
         if key ~= "Text" then
             local SchemeValue = GetSchemeValue(value)
 
@@ -1309,8 +1249,6 @@ local function FillInstance(Table: { [string]: any }, Instance: GuiObject)
     end
 end
 
-local AccentShimmerProps = { TextColor3 = true, ImageColor3 = true, BackgroundColor3 = true }
-
 local function New(ClassName: string, Properties: { [string]: any }): any
     local Instance = Instance.new(ClassName)
 
@@ -1323,15 +1261,6 @@ local function New(ClassName: string, Properties: { [string]: any }): any
         pcall(function()
             Instance.ZIndex = Properties.Parent.ZIndex
         end)
-    end
-
-    if not Properties.NoShimmer then
-        for Prop, _ in AccentShimmerProps do
-            if Properties[Prop] == "AccentColor" then
-                Library:AddShimmer(Instance, { BaseColor = "AccentColor" })
-                break
-            end
-        end
     end
 
     return Instance
@@ -6023,12 +5952,11 @@ do
         end
 
         local Fill = New("Frame", {
-         BackgroundColor3 = "AccentColor",
-         NoShimmer = true,
-         Size = UDim2.fromScale(0.5, 1),
-         ZIndex = Bar.ZIndex + 1,
-         Parent = Bar,
-    })
+            BackgroundColor3 = "AccentColor",
+            Size = UDim2.fromScale(0.5, 1),
+            ZIndex = Bar.ZIndex + 1,
+            Parent = Bar,
+        })
 
         table.insert(
             Library.Corners,
@@ -8321,7 +8249,7 @@ function Library:Notify(...)
             Position = UDim2.new(0, (Data.Icon and 21 or 0), 0.5, 0),
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
-            TextColor3 = Data.TitleColor or "AccentColor",
+            TextColor3 = Data.TitleColor or "FontColor",
             TextSize = 15,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
