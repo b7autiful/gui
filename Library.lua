@@ -1225,11 +1225,86 @@ function Library:Validate(Table: { [string]: any }, Template: { [string]: any })
     return Table
 end
 
+--// Shimmer \\--
+function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
+    Info = Info or {}
+
+    local BaseColor = Info.BaseColor or "AccentColor"
+    local ShimmerColor = Info.ShimmerColor or Color3.new(1, 1, 1)
+    local Width = Info.Width or 0.18
+    local Duration = Info.Duration or 1.2
+    local Interval = Info.Interval or 6
+    local Angle = Info.Angle or 20
+
+    local BaseColorValue = typeof(BaseColor) == "Color3" and BaseColor or Library.Scheme[BaseColor]
+
+    local Gradient = Instance.new("UIGradient")
+    Gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, BaseColorValue),
+        ColorSequenceKeypoint.new(0.5, ShimmerColor),
+        ColorSequenceKeypoint.new(1, BaseColorValue),
+    })
+    Gradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 1),
+        NumberSequenceKeypoint.new(math.clamp(0.5 - Width / 2, 0, 1), 1),
+        NumberSequenceKeypoint.new(0.5, 0),
+        NumberSequenceKeypoint.new(math.clamp(0.5 + Width / 2, 0, 1), 1),
+        NumberSequenceKeypoint.new(1, 1),
+    })
+    Gradient.Rotation = Angle
+    Gradient.Offset = Vector2.new(-1, 0)
+    Gradient.Parent = GuiObject
+
+    if typeof(BaseColor) == "string" then
+        Library:AddToRegistry(Gradient, {
+            Color = function()
+                local Value = Library.Scheme[BaseColor]
+                return ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, Value),
+                    ColorSequenceKeypoint.new(0.5, ShimmerColor),
+                    ColorSequenceKeypoint.new(1, Value),
+                })
+            end,
+        })
+    end
+
+    local Running = true
+    task.spawn(function()
+        while Running and GuiObject.Parent do
+            Gradient.Offset = Vector2.new(-1, 0)
+
+            local Tween = TweenService:Create(
+                Gradient,
+                TweenInfo.new(Duration, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                { Offset = Vector2.new(1, 0) }
+            )
+            Tween:Play()
+            Tween.Completed:Wait()
+
+            task.wait(Interval)
+        end
+    end)
+
+    return {
+        Gradient = Gradient,
+        Stop = function() Running = false end,
+        Destroy = function()
+            Running = false
+            Library:RemoveFromRegistry(Gradient)
+            Gradient:Destroy()
+        end,
+    }
+end
+
 --// Creator Functions \\--
 local function FillInstance(Table: { [string]: any }, Instance: GuiObject)
     local ThemeProperties = Library.Registry[Instance] or {}
 
     for key, value in Table do
+        if key == "NoShimmer" then
+            continue
+        end
+
         if key ~= "Text" then
             local SchemeValue = GetSchemeValue(value)
 
@@ -1249,6 +1324,8 @@ local function FillInstance(Table: { [string]: any }, Instance: GuiObject)
     end
 end
 
+local AccentShimmerProps = { TextColor3 = true, ImageColor3 = true, BackgroundColor3 = true }
+
 local function New(ClassName: string, Properties: { [string]: any }): any
     local Instance = Instance.new(ClassName)
 
@@ -1261,6 +1338,15 @@ local function New(ClassName: string, Properties: { [string]: any }): any
         pcall(function()
             Instance.ZIndex = Properties.Parent.ZIndex
         end)
+    end
+
+    if not Properties.NoShimmer then
+        for Prop, _ in AccentShimmerProps do
+            if Properties[Prop] == "AccentColor" then
+                Library:AddShimmer(Instance, { BaseColor = "AccentColor" })
+                break
+            end
+        end
     end
 
     return Instance
@@ -5952,11 +6038,12 @@ do
         end
 
         local Fill = New("Frame", {
-            BackgroundColor3 = "AccentColor",
-            Size = UDim2.fromScale(0.5, 1),
-            ZIndex = Bar.ZIndex + 1,
-            Parent = Bar,
-        })
+         BackgroundColor3 = "AccentColor",
+         NoShimmer = true,
+         Size = UDim2.fromScale(0.5, 1),
+         ZIndex = Bar.ZIndex + 1,
+         Parent = Bar,
+    })
 
         table.insert(
             Library.Corners,
@@ -8249,7 +8336,7 @@ function Library:Notify(...)
             Position = UDim2.new(0, (Data.Icon and 21 or 0), 0.5, 0),
             Size = UDim2.fromScale(0, 0),
             Text = Data.Title,
-            TextColor3 = Data.TitleColor or "FontColor",
+            TextColor3 = Data.TitleColor or "AccentColor",
             TextSize = 15,
             TextXAlignment = Enum.TextXAlignment.Left,
             TextYAlignment = Enum.TextYAlignment.Center,
