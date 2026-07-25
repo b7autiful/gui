@@ -1231,7 +1231,7 @@ function Library:AddShimmer(GuiObject: GuiObject, Info: { [string]: any }?)
 
     local BaseColor = Info.BaseColor or "AccentColor"
     local Duration = Info.Duration or 0.6
-    local Interval = Info.Interval or 6
+    local Interval = Info.Interval or 3
 
     local IsText = GuiObject:IsA("TextLabel") or GuiObject:IsA("TextButton")
     local ColorProp = IsText and "TextColor3" or (GuiObject:IsA("ImageLabel") or GuiObject:IsA("ImageButton")) and "ImageColor3" or "BackgroundColor3"
