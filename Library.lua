@@ -398,8 +398,8 @@ local Templates = {
         BackgroundImage = "",
          --// Glow \\--
         Glow = true,
-        GlowSize = 9,
-        GlowTransparency = 0.35,
+        GlowSize = 8,
+        GlowTransparency = 0.45,
 
         --// Animations \\--
         Animations = {
@@ -2009,7 +2009,7 @@ function Library:AddDraggableLabel(...)
     Library:AddOutline(Label)
     Library:AddGlow(Label, {
         Size = 18,
-        Transparency = 0.25,
+        Transparency = 0.35,
     })
     Library:MakeDraggable(Label, Label, true)
 
