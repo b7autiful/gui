@@ -398,7 +398,7 @@ local Templates = {
         BackgroundImage = "",
          --// Glow \\--
         Glow = true,
-        GlowSize = 12,
+        GlowSize = 9,
         GlowTransparency = 0.35,
 
         --// Animations \\--
@@ -1778,8 +1778,8 @@ end
 function Library:AddGlow(Frame: GuiObject, Info: { [string]: any }?)
     Info = Info or {}
 
-    local Size = Info.Size or 6          -- толщина свечения (было 18 — стало компактнее)
-    local Layers = Info.Layers or 4      -- кол-во слоёв для мягкого градиента
+    local Size = Info.Size or 9          -- толщина свечения (было 18 — стало компактнее)
+    local Layers = Info.Layers or 7      -- кол-во слоёв для мягкого градиента
     local Color = Info.Color or "AccentColor"
     local MaxTransparency = Info.Transparency or 0.55
 
