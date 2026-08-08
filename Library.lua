@@ -2007,7 +2007,10 @@ function Library:AddDraggableLabel(...)
     )
 
     Library:AddOutline(Label)
-    Library:AddGlow(Label)
+    Library:AddGlow(Label, {
+        Size = 14,
+        Transparency = 0.25,
+    })
     Library:MakeDraggable(Label, Label, true)
 
     function DraggableLabel:SetText(Text: string)
