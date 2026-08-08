@@ -2008,8 +2008,8 @@ function Library:AddDraggableLabel(...)
 
     Library:AddOutline(Label)
     Library:AddGlow(Label, {
-        Size = 9,
-        Transparency = 0.4,
+        Size = 18,
+        Transparency = 0.2,
     })
     Library:MakeDraggable(Label, Label, true)
 
