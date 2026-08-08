@@ -1778,10 +1778,10 @@ end
 function Library:AddGlow(Frame: GuiObject, Info: { [string]: any }?)
     Info = Info or {}
 
-    local Size = Info.Size or 7          -- толщина свечения (было 18 — стало компактнее)
+    local Size = Info.Size or 9          -- толщина свечения (было 18 — стало компактнее)
     local Layers = Info.Layers or 6      -- кол-во слоёв для мягкого градиента
     local Color = Info.Color or "AccentColor"
-    local MaxTransparency = Info.Transparency or 0.55
+    local MaxTransparency = Info.Transparency or 0.45
 
     local GlowHolder = New("Frame", {
         AnchorPoint = Vector2.new(0.5, 0.5),
@@ -2009,7 +2009,7 @@ function Library:AddDraggableLabel(...)
     Library:AddOutline(Label)
     Library:AddGlow(Label, {
         Size = 18,
-        Transparency = 0.2,
+        Transparency = 0.25,
     })
     Library:MakeDraggable(Label, Label, true)
 
