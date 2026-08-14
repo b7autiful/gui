@@ -1183,19 +1183,20 @@ function Library:GetCustomIcon(IconName: string): any
     end
 
     if IsCustomAssetIcon(IconName, true) then
-        return {
-            Url = IconName,
-            ImageRectOffset = Vector2.zero,
-            ImageRectSize = Vector2.zero,
-        }
-    elseif IsValidCustomIcon(IconName) then
-        return {
-            Url = IconName,
-            ImageRectOffset = Vector2.zero,
-            ImageRectSize = Vector2.zero,
-            Custom = true,
-        }
-    end
+    return {
+        Url = IconName,
+        ImageRectOffset = Vector2.zero,
+        ImageRectSize = Vector2.zero,
+        Custom = true, -- добавили это
+    }
+elseif IsValidCustomIcon(IconName) then
+    return {
+        Url = IconName,
+        ImageRectOffset = Vector2.zero,
+        ImageRectSize = Vector2.zero,
+        Custom = true,
+    }
+end
 
     local LucideIcon = Library:GetIcon(IconName)
     if LucideIcon then
@@ -8181,20 +8182,20 @@ function Library:Notify(...)
     end
 
     local BigIconLabel
-    if Data.BigIcon then
-        local ParsedIcon = Library:GetCustomIcon(Data.BigIcon)
-        if ParsedIcon then
-            BigIconLabel = New("ImageLabel", {
-                BackgroundTransparency = 1,
-                Size = UDim2.fromOffset(24, 24),
-                Image = ParsedIcon.Url,
-                ImageColor3 = Data.IconColor or "AccentColor",
-                ImageRectOffset = ParsedIcon.ImageRectOffset,
-                ImageRectSize = ParsedIcon.ImageRectSize,
-                Parent = ContentContainer,
-            })
-        end
+if Data.BigIcon then
+    local ParsedIcon = Library:GetCustomIcon(Data.BigIcon)
+    if ParsedIcon then
+        BigIconLabel = New("ImageLabel", {
+            BackgroundTransparency = 1,
+            Size = UDim2.fromOffset(24, 24),
+            Image = ParsedIcon.Url,
+            ImageColor3 = Data.IconColor or "WhiteColor", -- было "AccentColor"
+            ImageRectOffset = ParsedIcon.ImageRectOffset,
+            ImageRectSize = ParsedIcon.ImageRectSize,
+            Parent = ContentContainer,
+        })
     end
+end
 
     local TextContainer = New("Frame", {
         BackgroundTransparency = 1,
